@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>blob</title>
+  <link rel="stylesheet" href="blob.css">
+</head>
+
+<body>
+  <div id="wrapper">
+    <svg id="svgElement" version="1.1" baseProfile="full" width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+      <rect onclick="addDot(event)" onmousemove="dragCircle(event)" width="100%" height="100%" fill="grey"></rect>
+      <!-- <path d="M 150 50 Q 290 10, 290 150 T 150 290 10 150 150 50" stroke="black" fill="transparent" /> -->
+      <path d="M130 110 C 130 140, 180 140, 180 110" stroke="black" fill="transparent" />
+      <!-- <path d="M170 110 C 160 80, 200 80, 200 150" stroke="black" fill="transparent" /> -->
+    </svg>
+  </div>
+
+  <script src="blob.js"></script>
+</body>
+
+</html>
