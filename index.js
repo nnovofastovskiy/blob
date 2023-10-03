@@ -1,9 +1,17 @@
-const fieldSize = 200;
-
+// let fieldSize = 200;
 
 const wrapper = document.querySelector('.blob_wrapper');
 const blob = document.querySelector('.blob');
 const generate_btn = document.querySelector('.generate_btn');
+
+let fieldWidth = 400;
+let fieldHeight = 400;
+
+
+// fieldWidth = wrapper.getBoundingClientRect().width;
+// fieldHeight = wrapper.getBoundingClientRect().height;
+wrapper.setAttribute('style', `width: ${fieldWidth}px; height: ${fieldHeight}px;`)
+// wrapper.setAttribute('height', `${fieldSize}px`)
 
 var ro = new ResizeObserver(entries => {
     for (let entry of entries)
@@ -12,63 +20,61 @@ var ro = new ResizeObserver(entries => {
         }
 });
 
-ro.observe(wrapper);
+function resize() {
+    fieldWidth = wrapper.getBoundingClientRect().width;
+    fieldHeight = wrapper.getBoundingClientRect().height;
+    blob.setAttribute('width', String(fieldWidth));
+    blob.setAttribute('height', String(fieldHeight));
+}
 
-const fieldWidth = wrapper.getBoundingClientRect().width;
-const fieldHeight = wrapper.getBoundingClientRect().height;
-wrapper.addEventListener('resize', () => console.log('resize'))
-wrapper.setAttribute('style', `width: ${fieldSize}px; height: ${fieldSize}px;`)
-wrapper.setAttribute('height', `${fieldSize}px`)
+ro.observe(wrapper);
 
 const blobPath = 'M25.9,3.6\
                     C25.9,22.4, 12.9,44.8, -3.5,44.8\
                     C-19.9,44.8, -39.9,22.4, -39.9,3.6\
                     C-39.9,-15.1, -19.9,-30.2, -3.5,-30.2\
                     C12.9,-30.2, 25.9,-15.1, 25.9,3.6Z';
-// const curves = [
-//     [[40, 22.4], [12.9, 44.8], [-3.5, 44.8]],           //red
-//     [[-19.9, 44.8], [-39.9, 22.4], [-39.9, 3.6]],       //green
-//     [[-39.9, -15.1], [-19.9, -30.2], [-3.5, -30.2]],    //blue
-//     [[12.9, -30.2], [40, -15.1], [40, 3.6]]             //yellow
-// ];
 
-
-
-const initDots = [
-    [[12.9, 44.8], [-3.5, 44.8], [-19.9, 44.8]],
-    [[-39.9, 22.4], [-39.9, 3.6], [-39.9, -15.1]],
-    [[-19.9, -30.2], [-3.5, -30.2], [12.9, -30.2]],
-    [[40, -15.1], [40, 3.6], [40, 22.4]]
+const dots = [
+    [[112.9, 144.8], [-13.5, 144.8], [-119.9, 144.8]],
+    [[-139.9, 122.4], [-139.9, 13.6], [-139.9, -115.1]],
+    [[-119.9, -130.2], [-13.5, -130.2], [112.9, -130.2]],
+    [[140, -115.1], [140, 13.6], [140, 122.4]]
 ];
 
-const cDots = initDots.flat(1);
-cDots.unshift(cDots.pop());
+function pathFromDots() {
+    const cDots = dots.flat(1);
+    cDots.unshift(cDots.pop());
 
-const curves = [];
-for (let i = 0; i < cDots.length / 3; i++) {
-    curves.push([cDots[i * 3 + 0], cDots[i * 3 + 1], cDots[i * 3 + 2]]);
+    const curves = [];
+    for (let i = 0; i < cDots.length / 3; i++) {
+        curves.push([cDots[i * 3 + 0], cDots[i * 3 + 1], cDots[i * 3 + 2]]);
+    }
+    const lastCurve = curves[curves.length - 1];
+    const move = lastCurve[lastCurve.length - 1];
+
+    const path = `M${move.join(',')}${curves.reduce((acc, curve) => {
+        return acc + `C${curve.join(',')}`;
+    }, '')}`;
+
+    return path;
 }
 
-console.log(curves);
-
-
-const lastCurve = curves[curves.length - 1];
-
-const move = lastCurve[lastCurve.length - 1];
 
 let moveAble = {
     id: '',
     curveNum: null,
     dotNum: null,
-    x: null,
-    y: null
-}
-
-function resize() {
-    const fieldWidth = wrapper.getBoundingClientRect().width;
-    const fieldHeight = wrapper.getBoundingClientRect().height;
-    blob.setAttribute('width', String(fieldWidth));
-    blob.setAttribute('height', String(fieldHeight));
+    x0: null,
+    y0: null,
+    x1: null,
+    y1: null,
+    x2: null,
+    y2: null,
+    dx0: null,
+    dy0: null,
+    dx2: null,
+    dy2: null,
 }
 
 function newCircle(x, y, color = 'black', r = 2) {
@@ -76,7 +82,7 @@ function newCircle(x, y, color = 'black', r = 2) {
     circle.setAttribute('cx', String(x));
     circle.setAttribute('cy', String(y));
     circle.setAttribute('r', r);
-    circle.setAttribute('transform', `translate(${fieldSize / 2} ${fieldSize / 2})`);
+    circle.setAttribute('transform', `translate(${fieldWidth / 2} ${fieldHeight / 2})`);
     circle.setAttribute('fill', color);
     return circle;
 }
@@ -84,26 +90,59 @@ function newCircle(x, y, color = 'black', r = 2) {
 function moveHandler(e) {
     const blobX = blob.getBoundingClientRect().x;
     const blobY = blob.getBoundingClientRect().y;
-    initDots[moveAble.curveNum][moveAble.dotNum][0] = e.clientX - fieldSize / 2 - blobX;
-    initDots[moveAble.curveNum][moveAble.dotNum][1] = e.clientY - fieldSize / 2 - blobY;
+    // const dx = e.clientX - moveAble.x;
+    // const dy = e.clientY - moveAble.y;
+    const curveNum = moveAble.curveNum;
+    // console.log(moveAble.x);
+    // console.log(dx);
+    const newX = e.clientX - fieldWidth / 2 - blobX;
+    const newY = e.clientY - fieldHeight / 2 - blobY;
+    if (moveAble.dotNum === 1) {
+        dots[curveNum][0][0] = newX - moveAble.dx0;
+        dots[curveNum][0][1] = newY - moveAble.dy0;
+        dots[curveNum][1][0] = newX;
+        dots[curveNum][1][1] = newY;
+        dots[curveNum][2][0] = newX - moveAble.dx2;
+        dots[curveNum][2][1] = newY - moveAble.dy2;
+    }
     render();
 }
 
 function clickHandler(e) {
     const r = parseFloat(this.getAttribute('r'));
-    const x = (this.getBoundingClientRect().x + r - fieldSize / 2).toFixed(1);
-    const y = (this.getBoundingClientRect().y + r - fieldSize / 2).toFixed(1);
     const id = this.getAttribute('id');
-    const curveNum = id.split('-')[1];
-    const dotNum = id.split('-')[2];
+    const curveNum = parseInt(id.split('-')[1]);
+    const dotNum = parseInt(id.split('-')[2]);
+
+    const circle0 = blob.querySelector(`#circle-${curveNum}-0`);
+    const circle1 = blob.querySelector(`#circle-${curveNum}-1`);
+    const circle2 = blob.querySelector(`#circle-${curveNum}-2`);
+
+    const x0 = parseFloat(circle0.getAttribute('cx'));
+    const y0 = parseFloat(circle0.getAttribute('cy'));
+    const x1 = parseFloat(circle1.getAttribute('cx'));
+    const y1 = parseFloat(circle1.getAttribute('cy'));
+    const x2 = parseFloat(circle2.getAttribute('cx'));
+    const y2 = parseFloat(circle2.getAttribute('cy'));
+
 
     blob.addEventListener('mousemove', moveHandler);
 
     moveAble.id = id;
     moveAble.curveNum = curveNum;
     moveAble.dotNum = dotNum;
-    moveAble.x = x;
-    moveAble.y = y;
+    moveAble.x0 = x0;
+    moveAble.y0 = y0;
+    moveAble.x1 = x1;
+    moveAble.y1 = y1;
+    moveAble.x2 = x2;
+    moveAble.y2 = y2;
+    moveAble.dx0 = x1 - x0;
+    moveAble.dy0 = y1 - y0;
+    moveAble.dx2 = x1 - x2;
+    moveAble.dy2 = y1 - y2;
+
+    console.log(moveAble);
 }
 
 window.addEventListener('mouseup', () => {
@@ -111,29 +150,22 @@ window.addEventListener('mouseup', () => {
 })
 
 function create() {
-    let newPath = `M${move.join(',')}${curves.reduce((acc, curve) => {
-        return acc + `C${curve.join(',')}`;
-    }, '')}`;
+    let newPath = pathFromDots();
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', newPath);
     path.setAttribute('stroke', 'black');
     path.setAttribute('fill', 'transparent');
-    path.setAttribute('transform', `translate(${fieldSize / 2} ${fieldSize / 2})`);
+    path.setAttribute('transform', `translate(${fieldWidth / 2} ${fieldHeight / 2})`);
     blob.appendChild(path);
 
-    console.log(initDots.flat(1));
-    // const dotsNum = initDots.flat(1).length;
-    const curvesNum = initDots.length;
+    const curvesNum = dots.length;
     let c = [];
     for (let i = 0; i < curvesNum; i++) {
         c.push(`circle-${i}-0`);
         c.push(`circle-${i}-1`);
         c.push(`circle-${i}-2`);
     }
-    // c.push(c.shift());
-    // console.log(c);
-    initDots.forEach((curve, i) => {
-        // let k = Math.abs(j + 1);
+    dots.forEach((curve, i) => {
         let k = 1;
         let color;
         switch (i) {
@@ -155,33 +187,23 @@ function create() {
 
 }
 
-create();
 
 function render() {
-    const dots = [...initDots];
-    dots.unshift(dots.pop());
-    console.log(dots);
-    let curvesFromDots = [];
-    let curve = [];
-    for (let i = 0; i < dots.length; i++) {
-        if (((i + 1) % 3) > 0) {
-            curve.push(dots[i]);
-        } else {
-            curve.push(dots[i]);
-            curvesFromDots.push(curve);
-            curve = [];
-        }
-    }
-    console.log(curves);
-    console.log(curvesFromDots);
-    let newPath = `M${move.join(',')}${curves.reduce((acc, curve) => {
-        return acc + `C${curve.join(',')}`;
-    }, '')}`;
+    const curveNum = moveAble.curveNum;
+    let newPath = pathFromDots();
     const path = blob.querySelector('path');
     path.setAttribute('d', newPath);
 
-    const circle = blob.querySelector(`#${moveAble.id}`);
-    circle.setAttribute('cx', String(curves[moveAble.curveNum][moveAble.dotNum][0]));
-    circle.setAttribute('cy', String(curves[moveAble.curveNum][moveAble.dotNum][1]));
+    const circle0 = blob.querySelector(`#circle-${curveNum}-0`);
+    const circle1 = blob.querySelector(`#circle-${curveNum}-1`);
+    const circle2 = blob.querySelector(`#circle-${curveNum}-2`);
+    // const circle = blob.querySelector(`#${moveAble.id}`);
+    circle0.setAttribute('cx', String(dots[curveNum][0][0]));
+    circle0.setAttribute('cy', String(dots[curveNum][0][1]));
+    circle1.setAttribute('cx', String(dots[curveNum][1][0]));
+    circle1.setAttribute('cy', String(dots[curveNum][1][1]));
+    circle2.setAttribute('cx', String(dots[curveNum][2][0]));
+    circle2.setAttribute('cy', String(dots[curveNum][2][1]));
 }
 
+create();
