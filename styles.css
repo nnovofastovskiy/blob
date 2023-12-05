@@ -31,7 +31,7 @@ circle:hover {
     r: 8;
 }
 
-.generate_btn {
+.btn {
     width: fit-content;
     padding: 10px;
 }

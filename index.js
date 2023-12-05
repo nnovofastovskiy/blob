@@ -3,9 +3,12 @@
 const wrapper = document.querySelector('.blob_wrapper');
 const blob = document.querySelector('.blob');
 const generate_btn = document.querySelector('.generate_btn');
+const toggle_btn = document.querySelector('.toggle_dots_btn');
+// const allDots = document.querySelectorAll('.dot');
 
 let fieldWidth = 400;
 let fieldHeight = 400;
+
 
 
 // fieldWidth = wrapper.getBoundingClientRect().width;
@@ -244,3 +247,16 @@ function render() {
 }
 
 create();
+const allDots = document.querySelectorAll('.dot');
+let showDots = true;
+
+allDots.forEach(dot => {
+    dot.setAttribute('style', showDots ? 'display: auto' : 'display: none');
+});
+
+toggle_btn.addEventListener('click', () => {
+    showDots = !showDots;
+    allDots.forEach(dot => {
+        dot.setAttribute('style', showDots ? 'display: auto' : 'display: none');
+    });
+});
