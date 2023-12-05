@@ -41,6 +41,12 @@ const dots = [
     [[-119.9, -130.2], [-13.5, -130.2], [112.9, -130.2]],
     [[140, -115.1], [140, 13.6], [140, 122.4]]
 ];
+// const dots = [
+//     [[12.9, 44.8], [-13.5, 44.8], [-19.9, 44.8]],
+//     [[-39.9, 22.4], [-39.9, 3.6], [-39.9, -15.1]],
+//     [[-19.9, -30.2], [-13.5, -30.2], [12.9, -30.2]],
+//     [[40, -15.1], [40, 13.6], [40, 22.4]]
+// ];
 
 function pathFromDots() {
     const cDots = dots.flat(1);
@@ -75,9 +81,12 @@ let moveAble = {
     dy0: null,
     dx2: null,
     dy2: null,
+    l0: null,
+    l2: null,
+
 }
 
-function newCircle(x, y, color = 'black', r = 2) {
+function newCircle(x, y, color = 'black', r = 4) {
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', String(x));
     circle.setAttribute('cy', String(y));
@@ -90,13 +99,21 @@ function newCircle(x, y, color = 'black', r = 2) {
 function moveHandler(e) {
     const blobX = blob.getBoundingClientRect().x;
     const blobY = blob.getBoundingClientRect().y;
-    // const dx = e.clientX - moveAble.x;
-    // const dy = e.clientY - moveAble.y;
     const curveNum = moveAble.curveNum;
-    // console.log(moveAble.x);
-    // console.log(dx);
     const newX = e.clientX - fieldWidth / 2 - blobX;
     const newY = e.clientY - fieldHeight / 2 - blobY;
+
+    if (moveAble.dotNum === 0) {
+        const dx1 = newX - dots[curveNum][1][0];
+        const dy1 = newY - dots[curveNum][1][1];
+        const angle = Math.atan2(dy1, dx1) * 57.296;
+        const dx2 = moveAble.l2 * Math.cos((180 - angle) / 57.296);
+        const dy2 = moveAble.l2 * Math.sin((180 - angle) / 57.296);
+        dots[curveNum][0][0] = newX;
+        dots[curveNum][0][1] = newY;
+        dots[curveNum][2][0] = dx2 + dots[curveNum][1][0];
+        dots[curveNum][2][1] = - dy2 + dots[curveNum][1][1];
+    }
     if (moveAble.dotNum === 1) {
         dots[curveNum][0][0] = newX - moveAble.dx0;
         dots[curveNum][0][1] = newY - moveAble.dy0;
@@ -104,6 +121,17 @@ function moveHandler(e) {
         dots[curveNum][1][1] = newY;
         dots[curveNum][2][0] = newX - moveAble.dx2;
         dots[curveNum][2][1] = newY - moveAble.dy2;
+    }
+    if (moveAble.dotNum === 2) {
+        const dx1 = newX - dots[curveNum][1][0];
+        const dy1 = newY - dots[curveNum][1][1];
+        const angle = Math.atan2(dy1, dx1) * 57.296;
+        const dx0 = moveAble.l0 * Math.cos((180 - angle) / 57.296);
+        const dy0 = moveAble.l0 * Math.sin((180 - angle) / 57.296);
+        dots[curveNum][0][0] = dx0 + dots[curveNum][1][0];
+        dots[curveNum][0][1] = - dy0 + dots[curveNum][1][1];
+        dots[curveNum][2][0] = newX;
+        dots[curveNum][2][1] = newY;
     }
     render();
 }
@@ -127,7 +155,15 @@ function clickHandler(e) {
 
 
     blob.addEventListener('mousemove', moveHandler);
-
+    let dx0 = x1 - x0;
+    let dy0 = y1 - y0;
+    let dx2 = x1 - x2;
+    let dy2 = y1 - y2;
+    console.log(dx2);
+    let l0 = Math.sqrt(Math.abs(dx0 * dx0) + Math.abs(dy0 * dy0));
+    let l2 = Math.sqrt(Math.abs(dx2 * dx2) + Math.abs(dy2 * dy2));
+    console.log(l0);
+    console.log(l2);
     moveAble.id = id;
     moveAble.curveNum = curveNum;
     moveAble.dotNum = dotNum;
@@ -137,10 +173,12 @@ function clickHandler(e) {
     moveAble.y1 = y1;
     moveAble.x2 = x2;
     moveAble.y2 = y2;
-    moveAble.dx0 = x1 - x0;
-    moveAble.dy0 = y1 - y0;
-    moveAble.dx2 = x1 - x2;
-    moveAble.dy2 = y1 - y2;
+    moveAble.dx0 = dx0;
+    moveAble.dy0 = dy0;
+    moveAble.dx2 = dx2;
+    moveAble.dy2 = dy2;
+    moveAble.l0 = l0;
+    moveAble.l2 = l2;
 
     console.log(moveAble);
 }
@@ -166,7 +204,6 @@ function create() {
         c.push(`circle-${i}-2`);
     }
     dots.forEach((curve, i) => {
-        let k = 1;
         let color;
         switch (i) {
             case 0: color = 'red'; break;

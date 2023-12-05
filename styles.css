@@ -28,7 +28,7 @@ circle {
 }
 
 circle:hover {
-    r: 3;
+    r: 8;
 }
 
 .generate_btn {
