@@ -109,9 +109,9 @@ function moveHandler(e) {
     if (moveAble.dotNum === 0) {
         const dx1 = newX - dots[curveNum][1][0];
         const dy1 = newY - dots[curveNum][1][1];
-        const angle = Math.atan2(dy1, dx1) * 57.296;
-        const dx2 = moveAble.l2 * Math.cos((180 - angle) / 57.296);
-        const dy2 = moveAble.l2 * Math.sin((180 - angle) / 57.296);
+        const angle = Math.atan2(dy1, dx1);
+        const dx2 = moveAble.l2 * Math.cos(Math.PI - angle);
+        const dy2 = moveAble.l2 * Math.sin(Math.PI - angle);
         dots[curveNum][0][0] = newX;
         dots[curveNum][0][1] = newY;
         dots[curveNum][2][0] = dx2 + dots[curveNum][1][0];
@@ -128,9 +128,9 @@ function moveHandler(e) {
     if (moveAble.dotNum === 2) {
         const dx1 = newX - dots[curveNum][1][0];
         const dy1 = newY - dots[curveNum][1][1];
-        const angle = Math.atan2(dy1, dx1) * 57.296;
-        const dx0 = moveAble.l0 * Math.cos((180 - angle) / 57.296);
-        const dy0 = moveAble.l0 * Math.sin((180 - angle) / 57.296);
+        const angle = Math.atan2(dy1, dx1);
+        const dx0 = moveAble.l0 * Math.cos(Math.PI - angle);
+        const dy0 = moveAble.l0 * Math.sin(Math.PI - angle);
         dots[curveNum][0][0] = dx0 + dots[curveNum][1][0];
         dots[curveNum][0][1] = - dy0 + dots[curveNum][1][1];
         dots[curveNum][2][0] = newX;
@@ -162,11 +162,11 @@ function clickHandler(e) {
     let dy0 = y1 - y0;
     let dx2 = x1 - x2;
     let dy2 = y1 - y2;
-    console.log(dx2);
+    // console.log(dx2);
     let l0 = Math.sqrt(Math.abs(dx0 * dx0) + Math.abs(dy0 * dy0));
     let l2 = Math.sqrt(Math.abs(dx2 * dx2) + Math.abs(dy2 * dy2));
-    console.log(l0);
-    console.log(l2);
+    // console.log(l0);
+    // console.log(l2);
     moveAble.id = id;
     moveAble.curveNum = curveNum;
     moveAble.dotNum = dotNum;
@@ -183,7 +183,7 @@ function clickHandler(e) {
     moveAble.l0 = l0;
     moveAble.l2 = l2;
 
-    console.log(moveAble);
+    // console.log(moveAble);
 }
 
 window.addEventListener('mouseup', () => {
