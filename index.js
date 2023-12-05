@@ -4,6 +4,14 @@ const wrapper = document.querySelector('.blob_wrapper');
 const blob = document.querySelector('.blob');
 const generate_btn = document.querySelector('.generate_btn');
 const toggle_btn = document.querySelector('.toggle_dots_btn');
+const conrerNum = document.querySelector('.cornerNum');
+const conrerNumInput = document.querySelector('.conrerNumInput');
+
+function cornerChangeHandler() {
+    conrerNum.innerHTML = this.value;
+}
+
+conrerNumInput.addEventListener('input', cornerChangeHandler)
 // const allDots = document.querySelectorAll('.dot');
 
 let fieldWidth = 400;
