@@ -4,14 +4,55 @@ const wrapper = document.querySelector('.blob_wrapper');
 const blob = document.querySelector('.blob');
 const generate_btn = document.querySelector('.generate_btn');
 const toggle_btn = document.querySelector('.toggle_dots_btn');
-const conrerNum = document.querySelector('.cornerNum');
+const conrerNumSpan = document.querySelector('.cornerNum');
 const conrerNumInput = document.querySelector('.conrerNumInput');
+const curvatureNumSpan = document.querySelector('.curvatureNum');
+const curvatureNumInput = document.querySelector('.curvatureNumInput');
 
-function cornerChangeHandler() {
-    conrerNum.innerHTML = this.value;
+
+let allDots;
+
+
+let conrerNum = 4;
+let curvature = 1;
+
+let showDots = true;
+
+
+function getRandom(min, max) {
+    const absMin = 10;
+    const r = Math.floor(Math.random() * (max - min) + min);
+    if (Math.abs(r) < absMin) return absMin;
+    return r;
 }
 
-conrerNumInput.addEventListener('input', cornerChangeHandler)
+function cornerChangeHandler() {
+    conrerNumSpan.innerHTML = this.value;
+    conrerNum = parseInt(this.value);
+    const newDots = [];
+    for (let i = 0; i < conrerNum; i++) {
+        newDots.push([[], [], []]);
+    }
+    dots = newDots;
+    create();
+    render();
+}
+
+function curvatureChangeHandler() {
+    curvatureNumSpan.innerHTML = this.value;
+    curvature = parseInt(this.value);
+    generate();
+    render();
+}
+
+conrerNumInput.addEventListener('input', cornerChangeHandler);
+curvatureNumInput.addEventListener('input', curvatureChangeHandler);
+
+
+generate_btn.addEventListener('click', () => {
+    generate();
+    render();
+});
 // const allDots = document.querySelectorAll('.dot');
 
 let fieldWidth = 400;
@@ -36,28 +77,18 @@ function resize() {
     fieldHeight = wrapper.getBoundingClientRect().height;
     blob.setAttribute('width', String(fieldWidth));
     blob.setAttribute('height', String(fieldHeight));
+    // blob.querySelector('path').setAttribute('transform', `translate(${fieldWidth / 2} ${fieldHeight / 2})`);
+
 }
 
 ro.observe(wrapper);
 
-const blobPath = 'M25.9,3.6\
-                    C25.9,22.4, 12.9,44.8, -3.5,44.8\
-                    C-19.9,44.8, -39.9,22.4, -39.9,3.6\
-                    C-39.9,-15.1, -19.9,-30.2, -3.5,-30.2\
-                    C12.9,-30.2, 25.9,-15.1, 25.9,3.6Z';
-
-const dots = [
-    [[112.9, 144.8], [-13.5, 144.8], [-119.9, 144.8]],
-    [[-139.9, 122.4], [-139.9, 13.6], [-139.9, -115.1]],
-    [[-119.9, -130.2], [-13.5, -130.2], [112.9, -130.2]],
-    [[140, -115.1], [140, 13.6], [140, 122.4]]
+let dots = [
+    [[], [], []],
+    [[], [], []],
+    [[], [], []],
+    [[], [], []]
 ];
-// const dots = [
-//     [[12.9, 44.8], [-13.5, 44.8], [-19.9, 44.8]],
-//     [[-39.9, 22.4], [-39.9, 3.6], [-39.9, -15.1]],
-//     [[-19.9, -30.2], [-13.5, -30.2], [12.9, -30.2]],
-//     [[40, -15.1], [40, 13.6], [40, 22.4]]
-// ];
 
 function pathFromDots() {
     const cDots = dots.flat(1);
@@ -104,6 +135,8 @@ function newCircle(x, y, color = 'black', r = 4) {
     circle.setAttribute('r', r);
     circle.setAttribute('transform', `translate(${fieldWidth / 2} ${fieldHeight / 2})`);
     circle.setAttribute('fill', color);
+    // circle.setAttribute('style', 'display: none');
+    circle.setAttribute('class', 'dot');
     return circle;
 }
 
@@ -170,11 +203,8 @@ function clickHandler(e) {
     let dy0 = y1 - y0;
     let dx2 = x1 - x2;
     let dy2 = y1 - y2;
-    // console.log(dx2);
     let l0 = Math.sqrt(Math.abs(dx0 * dx0) + Math.abs(dy0 * dy0));
     let l2 = Math.sqrt(Math.abs(dx2 * dx2) + Math.abs(dy2 * dy2));
-    // console.log(l0);
-    // console.log(l2);
     moveAble.id = id;
     moveAble.curveNum = curveNum;
     moveAble.dotNum = dotNum;
@@ -190,8 +220,6 @@ function clickHandler(e) {
     moveAble.dy2 = dy2;
     moveAble.l0 = l0;
     moveAble.l2 = l2;
-
-    // console.log(moveAble);
 }
 
 window.addEventListener('mouseup', () => {
@@ -199,6 +227,14 @@ window.addEventListener('mouseup', () => {
 })
 
 function create() {
+    if (blob.querySelector('path')) {
+        blob.removeChild(blob.querySelector('path'));
+        for (let i = 0; i < allDots.length; i++) {
+            blob.removeChild(allDots[i]);
+        }
+    }
+
+    generate();
     let newPath = pathFromDots();
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', newPath);
@@ -221,46 +257,68 @@ function create() {
             case 1: color = 'green'; break;
             case 2: color = 'blue'; break;
             case 3: color = 'yellow'; break;
+            case 4: color = 'pink'; break;
+            case 5: color = 'violent'; break;
+            case 6: color = 'lime'; break;
             default: color = 'black'; break;
         }
         curve.forEach((dot, j) => {
 
             const circle = newCircle(dot[0], dot[1], color);
             circle.setAttribute('id', c[i * 3 + j]);
-            circle.setAttribute('class', 'dot');
             circle.addEventListener('mousedown', clickHandler);
             blob.appendChild(circle);
         });
     });
+    allDots = document.querySelectorAll('.dot');
+}
 
+function generate() {
+    const angles = [];
+    const a1r = getRandom(-(10 * curvature), (10 * curvature));
+    for (let i = 1; i < conrerNum + 1; i++) {
+        let a1 = 360 / conrerNum * i + a1r;
+        let a0 = a1 - 90;
+        a1 = a1 / (360 / (2 * Math.PI));
+        a0 = a0 / (360 / (2 * Math.PI));
+        angles.push([a1, a0]);
+    }
+    for (let i = 0; i < conrerNum; i++) {
+        const l1 = getRandom(fieldWidth / 3 - (20 * curvature), fieldWidth / 3 + (20 * curvature));
+        const l0 = getRandom(fieldWidth / 5 - (20 * curvature), fieldWidth / 5 + (20 * curvature));
+        const l2 = getRandom(fieldWidth / 5 - (20 * curvature), fieldWidth / 5 + (20 * curvature));
+        const x1 = l1 * Math.cos(angles[i][0]);
+        const y1 = l1 * Math.sin(angles[i][0]);
+        const x0 = x1 + l0 * Math.cos(angles[i][1]);
+        const y0 = y1 + l0 * Math.sin(angles[i][1]);
+        const x2 = x1 + l2 * Math.cos(Math.PI - angles[i][1]);
+        const y2 = y1 - l2 * Math.sin(Math.PI - angles[i][1]);
+
+        dots[i][0] = [x0, y0];
+        dots[i][1] = [x1, y1];
+        dots[i][2] = [x2, y2];
+    }
 }
 
 
 function render() {
-    const curveNum = moveAble.curveNum;
     let newPath = pathFromDots();
     const path = blob.querySelector('path');
     path.setAttribute('d', newPath);
-
-    const circle0 = blob.querySelector(`#circle-${curveNum}-0`);
-    const circle1 = blob.querySelector(`#circle-${curveNum}-1`);
-    const circle2 = blob.querySelector(`#circle-${curveNum}-2`);
-    // const circle = blob.querySelector(`#${moveAble.id}`);
-    circle0.setAttribute('cx', String(dots[curveNum][0][0]));
-    circle0.setAttribute('cy', String(dots[curveNum][0][1]));
-    circle1.setAttribute('cx', String(dots[curveNum][1][0]));
-    circle1.setAttribute('cy', String(dots[curveNum][1][1]));
-    circle2.setAttribute('cx', String(dots[curveNum][2][0]));
-    circle2.setAttribute('cy', String(dots[curveNum][2][1]));
+    for (let i = 0; i < dots.length; i++) {
+        for (let j = 0; j < 3; j++) {
+            const n = (i * 3) + j;
+            allDots[n].setAttribute('cx', String(dots[i][j][0]));
+            allDots[n].setAttribute('cy', String(dots[i][j][1]));
+        }
+    }
 }
 
-create();
-const allDots = document.querySelectorAll('.dot');
-let showDots = true;
 
-allDots.forEach(dot => {
-    dot.setAttribute('style', showDots ? 'display: auto' : 'display: none');
-});
+
+// allDots.forEach(dot => {
+//     dot.setAttribute('style', showDots ? 'display: auto' : 'display: none');
+// });
 
 toggle_btn.addEventListener('click', () => {
     showDots = !showDots;
@@ -268,3 +326,6 @@ toggle_btn.addEventListener('click', () => {
         dot.setAttribute('style', showDots ? 'display: auto' : 'display: none');
     });
 });
+
+create();
+// allDots = document.querySelectorAll('.dot');

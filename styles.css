@@ -19,7 +19,7 @@
 
 .blob_wrapper {
     background-color: #befeff;
-    resize: both;
+    /* resize: both; */
     overflow: hidden;
 }
 
