@@ -8,32 +8,39 @@ const conrerNumSpan = document.querySelector('.cornerNum');
 const conrerNumInput = document.querySelector('.conrerNumInput');
 const curvatureNumSpan = document.querySelector('.curvatureNum');
 const curvatureNumInput = document.querySelector('.curvatureNumInput');
-
-
 let allDots;
 
+const duration = 300;
+
+
+const randomity = [1, 1.2, 1.4, 1.6, 1.8];
+const cornerity = [, , , 4, 6, 8, 10, 20];
 
 let conrerNum = 4;
 let curvature = 1;
 
-let showDots = true;
+let showDots = false;
 
 
 function getRandom(min, max) {
-    const absMin = 10;
+    // const absMin = 10;
     const r = Math.floor(Math.random() * (max - min) + min);
-    if (Math.abs(r) < absMin) return absMin;
+    // if (Math.abs(r) < absMin) return absMin;
     return r;
 }
 
 function cornerChangeHandler() {
     conrerNumSpan.innerHTML = this.value;
     conrerNum = parseInt(this.value);
-    const newDots = [];
+    dots = [];
+    startDots = [];
+    targetDots = [];
     for (let i = 0; i < conrerNum; i++) {
-        newDots.push([[], [], []]);
+        dots.push([[], [], []]);
+        startDots.push([[], [], []]);
+        targetDots.push([[], [], []]);
     }
-    dots = newDots;
+    // dots = newDots;
     create();
     render();
 }
@@ -41,7 +48,7 @@ function cornerChangeHandler() {
 function curvatureChangeHandler() {
     curvatureNumSpan.innerHTML = this.value;
     curvature = parseInt(this.value);
-    generate();
+    create();
     render();
 }
 
@@ -51,7 +58,8 @@ curvatureNumInput.addEventListener('input', curvatureChangeHandler);
 
 generate_btn.addEventListener('click', () => {
     generate();
-    render();
+    animationHandler();
+    // render();
 });
 // const allDots = document.querySelectorAll('.dot');
 
@@ -83,7 +91,21 @@ function resize() {
 
 ro.observe(wrapper);
 
+let startDots = [
+    [[], [], []],
+    [[], [], []],
+    [[], [], []],
+    [[], [], []]
+];
+
 let dots = [
+    [[], [], []],
+    [[], [], []],
+    [[], [], []],
+    [[], [], []]
+];
+
+let targetDots = [
     [[], [], []],
     [[], [], []],
     [[], [], []],
@@ -135,7 +157,7 @@ function newCircle(x, y, color = 'black', r = 4) {
     circle.setAttribute('r', r);
     circle.setAttribute('transform', `translate(${fieldWidth / 2} ${fieldHeight / 2})`);
     circle.setAttribute('fill', color);
-    // circle.setAttribute('style', 'display: none');
+    circle.setAttribute('style', showDots ? 'display: auto' : 'display: none');
     circle.setAttribute('class', 'dot');
     return circle;
 }
@@ -177,11 +199,11 @@ function moveHandler(e) {
         dots[curveNum][2][0] = newX;
         dots[curveNum][2][1] = newY;
     }
+    // console.log(dots);
     render();
 }
 
 function clickHandler(e) {
-    const r = parseFloat(this.getAttribute('r'));
     const id = this.getAttribute('id');
     const curveNum = parseInt(id.split('-')[1]);
     const dotNum = parseInt(id.split('-')[2]);
@@ -224,7 +246,7 @@ function clickHandler(e) {
 
 window.addEventListener('mouseup', () => {
     blob.removeEventListener('mousemove', moveHandler)
-})
+});
 
 function create() {
     if (blob.querySelector('path')) {
@@ -233,13 +255,20 @@ function create() {
             blob.removeChild(allDots[i]);
         }
     }
-
     generate();
+    // dots = targetDots.slice(0);
+    // console.log(dots);
+    for (let i = 0; i < dots.length; i++) {
+        for (let j = 0; j < 3; j++) {
+            dots[i][j] = targetDots[i][j];
+        }
+    }
+
     let newPath = pathFromDots();
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', newPath);
-    path.setAttribute('stroke', 'black');
-    path.setAttribute('fill', 'transparent');
+    // path.setAttribute('stroke', 'black');
+    path.setAttribute('fill', '#844ec6');
     path.setAttribute('transform', `translate(${fieldWidth / 2} ${fieldHeight / 2})`);
     blob.appendChild(path);
 
@@ -274,30 +303,49 @@ function create() {
 }
 
 function generate() {
+    // startDots = dots.slice(0);
+    if (dots[0][0].length > 0) {
+        for (let i = 0; i < dots.length; i++) {
+            for (let j = 0; j < 3; j++) {
+                startDots[i][j] = [];
+                startDots[i][j].push(dots[i][j][0]);
+                startDots[i][j].push(dots[i][j][1]);
+            }
+        }
+    }
+    const rand = randomity[curvature - 1];
+    const cor = cornerity[conrerNum];
     const angles = [];
-    const a1r = getRandom(-(10 * curvature), (10 * curvature));
+    // console.log(a1r);
     for (let i = 1; i < conrerNum + 1; i++) {
+        const a1r = getRandom(-(10 * rand), (10 * rand));
+        const a0r = getRandom(-(20 * rand / curvature), (20 * rand / curvature));
         let a1 = 360 / conrerNum * i + a1r;
-        let a0 = a1 - 90;
+        // console.log(a1);
+        let a0 = a1 - 90 + a0r;
         a1 = a1 / (360 / (2 * Math.PI));
         a0 = a0 / (360 / (2 * Math.PI));
         angles.push([a1, a0]);
     }
     for (let i = 0; i < conrerNum; i++) {
-        const l1 = getRandom(fieldWidth / 3 - (20 * curvature), fieldWidth / 3 + (20 * curvature));
-        const l0 = getRandom(fieldWidth / 5 - (20 * curvature), fieldWidth / 5 + (20 * curvature));
-        const l2 = getRandom(fieldWidth / 5 - (20 * curvature), fieldWidth / 5 + (20 * curvature));
-        const x1 = l1 * Math.cos(angles[i][0]);
-        const y1 = l1 * Math.sin(angles[i][0]);
-        const x0 = x1 + l0 * Math.cos(angles[i][1]);
-        const y0 = y1 + l0 * Math.sin(angles[i][1]);
-        const x2 = x1 + l2 * Math.cos(Math.PI - angles[i][1]);
-        const y2 = y1 - l2 * Math.sin(Math.PI - angles[i][1]);
+        // const l1r = 20 * curvature
+        const l1 = getRandom(fieldWidth / 4 - (10 * rand), fieldWidth / 3 + (10 * rand));
+        const l0 = 10 + getRandom(fieldWidth / cor - 20, fieldWidth / cor + 20);
+        const l2 = 10 + getRandom(fieldWidth / cor - 20, fieldWidth / cor + 20);
+        // const l0 = 10 + getRandom(fieldWidth / 5 - 20, fieldWidth / 5 + 20);
+        // const l2 = 10 + getRandom(fieldWidth / 5 - 20, fieldWidth / 5 + 20);
+        const x1 = Math.round(l1 * Math.cos(angles[i][0]));
+        const y1 = Math.round(l1 * Math.sin(angles[i][0]));
+        const x0 = Math.round(x1 + l0 * Math.cos(angles[i][1]));
+        const y0 = Math.round(y1 + l0 * Math.sin(angles[i][1]));
+        const x2 = Math.round(x1 + l2 * Math.cos(Math.PI - angles[i][1]));
+        const y2 = Math.round(y1 - l2 * Math.sin(Math.PI - angles[i][1]));
 
-        dots[i][0] = [x0, y0];
-        dots[i][1] = [x1, y1];
-        dots[i][2] = [x2, y2];
+        targetDots[i][0] = [x0, y0];
+        targetDots[i][1] = [x1, y1];
+        targetDots[i][2] = [x2, y2];
     }
+    // console.log(targetDots);
 }
 
 
@@ -326,6 +374,57 @@ toggle_btn.addEventListener('click', () => {
         dot.setAttribute('style', showDots ? 'display: auto' : 'display: none');
     });
 });
+
+const Y0 = 0;
+const Y1 = -0.3;
+const Y2 = 1.8;
+const Y3 = 0.7;
+const Y4 = 1;
+
+const X0 = 0;
+const X1 = 0.25;
+const X2 = 0.5;
+const X3 = 0.75;
+const X4 = 1;
+
+function draw(t) {
+    // console.log("t = ", t);
+    const bezierX =
+        4 * Math.pow(1 - t, 3) * t * X1 +
+        8 * Math.pow(1 - t, 2) * Math.pow(t, 2) * X2 +
+        4 * (1 - t) * Math.pow(t, 3) * X3 +
+        Math.pow(t, 4) * X4;
+    const bezierY =
+        4 * Math.pow(1 - t, 3) * t * Y1 +
+        8 * Math.pow(1 - t, 2) * Math.pow(t, 2) * Y2 +
+        4 * (1 - t) * Math.pow(t, 3) * Y3 +
+        Math.pow(t, 4) * Y4;
+    // console.log(bezierY);
+    for (let i = 0; i < dots.length; i++) {
+        for (let j = 0; j < 3; j++) {
+            dots[i][j][0] = startDots[i][j][0] + (targetDots[i][j][0] - startDots[i][j][0]) * bezierY;
+            dots[i][j][1] = startDots[i][j][1] + (targetDots[i][j][1] - startDots[i][j][1]) * bezierY;
+        }
+    }
+    console.log('start', startDots[0][0][0]);
+    console.log('current', dots[0][0][0]);
+    console.log('target', targetDots[0][0][0]);
+    render();
+}
+
+function animationHandler() {
+    console.log('animationHandler');
+    const startTime = performance.now();
+    requestAnimationFrame(function animate(time) {
+        let timeFraction = (time - startTime) / duration;
+        if (timeFraction > 1) timeFraction = 1;
+        draw(timeFraction);
+
+        if (timeFraction < 1) {
+            requestAnimationFrame(animate)
+        }
+    });
+}
 
 create();
 // allDots = document.querySelectorAll('.dot');

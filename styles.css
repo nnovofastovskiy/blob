@@ -25,10 +25,12 @@
 
 circle {
     cursor: pointer;
+    transition: r 0.15s ease;
 }
 
 circle:hover {
     r: 8;
+    /* color: #844ec6 */
 }
 
 .btn {
