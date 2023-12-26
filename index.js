@@ -206,6 +206,11 @@ function moveHandler(e) {
     render();
 }
 
+function touchHandler(e) {
+    e.preventDefault();
+    moveHandler(e);
+}
+
 function clickHandler(e) {
     console.log('click');
     const id = this.getAttribute('id');
@@ -225,7 +230,7 @@ function clickHandler(e) {
 
 
     blob.addEventListener('mousemove', moveHandler);
-    blob.addEventListener('touchmove', moveHandler);
+    blob.addEventListener('touchmove', touchHandler);
     let dx0 = x1 - x0;
     let dy0 = y1 - y0;
     let dx2 = x1 - x2;
@@ -251,6 +256,10 @@ function clickHandler(e) {
 
 window.addEventListener('mouseup', () => {
     blob.removeEventListener('mousemove', moveHandler)
+});
+window.addEventListener('touchend', () => {
+    console.log('touchend');
+    blob.removeEventListener('touchmove', touchHandler);
 });
 
 function create() {
