@@ -37,3 +37,14 @@ circle:hover {
     width: fit-content;
     padding: 10px;
 }
+
+@media(max-width: 480px) {
+    circle {
+        r: 8;
+    }
+    
+    circle:hover {
+        r: 12;
+        /* color: #844ec6 */
+    }
+}

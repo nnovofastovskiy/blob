@@ -152,6 +152,7 @@ let moveAble = {
 
 function newCircle(x, y, color = 'black', r = 4) {
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    // circle.addEventListener('touchstart', () => console.log('drag'));
     circle.setAttribute('cx', String(x));
     circle.setAttribute('cy', String(y));
     circle.setAttribute('r', r);
@@ -166,8 +167,10 @@ function moveHandler(e) {
     const blobX = blob.getBoundingClientRect().x;
     const blobY = blob.getBoundingClientRect().y;
     const curveNum = moveAble.curveNum;
-    const newX = e.clientX - fieldWidth / 2 - blobX;
-    const newY = e.clientY - fieldHeight / 2 - blobY;
+    const currX = e.clientX ? e.clientX : e.touches[0].clientX;
+    const currY = e.clientY ? e.clientY : e.touches[0].clientY;
+    const newX = currX - fieldWidth / 2 - blobX;
+    const newY = currY - fieldHeight / 2 - blobY;
 
     if (moveAble.dotNum === 0) {
         const dx1 = newX - dots[curveNum][1][0];
@@ -204,6 +207,7 @@ function moveHandler(e) {
 }
 
 function clickHandler(e) {
+    console.log('click');
     const id = this.getAttribute('id');
     const curveNum = parseInt(id.split('-')[1]);
     const dotNum = parseInt(id.split('-')[2]);
@@ -221,6 +225,7 @@ function clickHandler(e) {
 
 
     blob.addEventListener('mousemove', moveHandler);
+    blob.addEventListener('touchmove', moveHandler);
     let dx0 = x1 - x0;
     let dy0 = y1 - y0;
     let dx2 = x1 - x2;
@@ -296,6 +301,7 @@ function create() {
             const circle = newCircle(dot[0], dot[1], color);
             circle.setAttribute('id', c[i * 3 + j]);
             circle.addEventListener('mousedown', clickHandler);
+            circle.addEventListener('touchstart', clickHandler);
             blob.appendChild(circle);
         });
     });
